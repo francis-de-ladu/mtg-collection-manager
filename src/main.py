@@ -19,7 +19,7 @@ def main(collection_path: str = 'data/my_collection.csv', deck_dir: str = 'data/
         r'(?P<quantity>\d+) (?P<card>[^[<]+)( <(?P<variation>.+)>)? \[(?P<set_id>\w+)\](?P<foil> \(F\))?')
 
     deck_list = []
-    for path in Path(deck_dir).rglob('*.txt'):
+    for path in sorted(Path(deck_dir).rglob('*.txt')):
         print(path)
         if path.stem.startswith('Deck - '):
             path = path.rename(path.with_stem(path.stem.removeprefix('Deck - ')))
