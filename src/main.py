@@ -128,7 +128,7 @@ def main(
         owned_cards["formatted"] = format_entries(owned_cards, deck, deck_info=True)
         # print(owned_cards)
 
-        missing_cards = deck.loc[~deck["card"].isin(owned_cards)]
+        missing_cards = deck.loc[~deck["card"].isin(owned_cards["card"])]
         missing_cards.sort_values(["deck", "card", "set_id"], inplace=True)
         missing_cards["formatted"] = format_entries(missing_cards, deck, deck_info=False)
         # print(missing_cards)
