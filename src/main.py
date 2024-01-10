@@ -13,9 +13,7 @@ def format_entries(cards: pd.DataFrame, deck: pd.DataFrame, deck_info: bool = Tr
 
     cards["quantity"] = cards["quantity"].astype(str)
     cards["set_id"] = cards["set_id"].map(lambda set_id: f"[{set_id}]" if set_id else None)
-    cards["variation"] = cards["variation"].map(
-        lambda variation: f"<{variation}>" if variation else None
-    )
+    cards["variation"] = cards["variation"].map(lambda variation: f"<{variation}>" if variation else None)
     cards["foil"] = cards["foil"].map(lambda foil: "(F)" if foil == "foil" else None)
     cards["quantity"] = cards.apply(
         lambda entry: deck.loc[deck["card"] == entry["card"]].iloc[0]["quantity"],
@@ -57,21 +55,6 @@ def main(
         r"( (?P<foil>\(F\)))?"
     )
 
-    available_cards = []
-    for path in sorted(Path(cards_dir).rglob("*.txt")):
-        print(path)
-        if path.stem.startswith("Deck - "):
-            path = path.rename(path.with_stem(path.stem.removeprefix("Deck - ")))
-
-        with path.open("r") as fp:
-            lines = fp.read().splitlines()
-
-        cards = pd.DataFrame([pattern.match(line).groupdict() for line in lines if len(line)])
-        cards["foil"] = cards["foil"].map(lambda x: "foil" if x else "regular")
-
-        cards["deck"] = path.stem
-        available_cards.append(cards)
-
     deck_list = []
     for path in sorted(Path(decks_dir).rglob("*.txt")):
         print(path)
@@ -87,11 +70,29 @@ def main(
         deck["deck"] = path.stem
         deck_list.append(deck)
 
-    combined_cards = pd.concat(available_cards)
-    combined_cards["quantity"] = combined_cards["quantity"].astype(int)
+    available_cards = []
+    for path in sorted(Path(cards_dir).rglob("*.txt")):
+        print(path)
+        if path.stem.startswith("Deck - "):
+            path = path.rename(path.with_stem(path.stem.removeprefix("Deck - ")))
+
+        with path.open("r") as fp:
+            lines = fp.read().splitlines()
+
+        cards = pd.DataFrame([pattern.match(line).groupdict() for line in lines if len(line)])
+        cards["foil"] = cards["foil"].map(lambda x: "foil" if x else "regular")
+
+        cards["deck"] = path.stem
+        available_cards.append(cards)
 
     combined_decks = pd.concat(deck_list)
     combined_decks["quantity"] = combined_decks["quantity"].astype(int)
+
+    if available_cards:
+        combined_cards = pd.concat(available_cards)
+        combined_cards["quantity"] = combined_cards["quantity"].astype(int)
+    else:
+        combined_cards = pd.DataFrame(columns=combined_decks.columns)
 
     all_combined = pd.concat([combined_cards, combined_decks])
 
